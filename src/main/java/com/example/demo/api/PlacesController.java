@@ -1,5 +1,7 @@
 package com.example.demo.api;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +26,11 @@ public class PlacesController {
 	PlacesService placesService;
 
 	@PostMapping
-	public ResponseEntity<Void> savePlacesWithPostalCode(@Valid @RequestBody PlaceDto placeDto,
+	public ResponseEntity<Void> savePlacesWithPostalCode(@Valid @RequestBody List<PlaceDto> placeDtos,
 			UriComponentsBuilder uriComponentsBuilder) {
 
-		long id = placesService.savePlaceWithPostalCode(placeDto);
-		UriComponents uriComponents = uriComponentsBuilder.path("/api/places/{id}").buildAndExpand(id);
+		List<PlaceDto> dtos = placesService.savePlacesListWithPostalCodes(placeDtos);
+		UriComponents uriComponents = uriComponentsBuilder.path("/api/places/").build();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setLocation(uriComponents.toUri());
 		return new ResponseEntity<Void>(headers,HttpStatus.CREATED);

@@ -9,6 +9,7 @@ import lombok.Setter;
 @Data
 public class PlaceDto {
 
+	private long id;
 	private String placeName;
 	private long postalCode;
 }
