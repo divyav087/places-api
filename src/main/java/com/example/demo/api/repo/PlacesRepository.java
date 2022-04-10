@@ -8,7 +8,5 @@ import com.example.demo.api.entity.PlaceEntity;
 
 public interface PlacesRepository extends CrudRepository<PlaceEntity, Long> {
 
-	
-	
 	List<PlaceEntity> findByPostalCodeBetween(long from, long to);
 }

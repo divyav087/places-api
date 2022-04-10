@@ -19,14 +19,14 @@ public class PlacesServiceImpl implements PlacesService {
 
 	@Override
 	public long savePlaceWithPostalCode(PlaceDto placeDto) {
-		PlaceEntity entity = preparePlaceEntity(placeDto);
+		PlaceEntity entity = mapDtotoEntity(placeDto);
 		entity = placesRepository.save(entity);
 		return entity.getId();
 	}
 
 	@Override
 	public boolean savePlacesListWithPostalCodes(List<PlaceDto> placeDtos) {
-		List<PlaceEntity> entities = placeDtos.stream().map(this::preparePlaceEntity).collect(Collectors.toList());
+		List<PlaceEntity> entities = placeDtos.stream().map(this::mapDtotoEntity).collect(Collectors.toList());
 		entities = (List<PlaceEntity>) placesRepository.saveAll(entities);
 		return entities.size() > 0;
 	}
@@ -34,15 +34,13 @@ public class PlacesServiceImpl implements PlacesService {
 	@Override
 	public List<PlaceDto> getPlacesNameByPostalRange(long rangeFrom, long rangeTo) {
 		List<PlaceEntity> entities = placesRepository.findByPostalCodeBetween(rangeFrom, rangeTo);
-		Comparator<PlaceDto> placeComparator = (e1, e2) -> e1.getPlaceName().compareTo(e2.getPlaceName());
-		List<PlaceDto> placeDtos = entities.stream()
-				.map(this::mapEntityToDto)
-				.sorted(placeComparator)
+		List<PlaceDto> placeDtos = entities.stream().map(this::mapEntityToDto)
+				.sorted(Comparator.comparing(PlaceDto::getPlaceName))
 				.collect(Collectors.toList());
 		return placeDtos;
 	}
 
-	private PlaceEntity preparePlaceEntity(PlaceDto placeDto) {
+	private PlaceEntity mapDtotoEntity(PlaceDto placeDto) {
 		return PlaceEntity.builder().placeName(placeDto.getPlaceName()).postalCode(placeDto.getPostalCode()).build();
 	}
 

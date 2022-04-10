@@ -30,7 +30,6 @@ public class PlacesController {
 	@PostMapping
 	public ResponseEntity<Void> savePlacesWithPostalCode(@Valid @RequestBody List<PlaceDto> placeDtos,
 			UriComponentsBuilder uriComponentsBuilder) {
-
 		boolean save = placesService.savePlacesListWithPostalCodes(placeDtos);
 		UriComponents uriComponents = uriComponentsBuilder.path("/api/places/").buildAndExpand(save);
 		HttpHeaders headers = new HttpHeaders();
