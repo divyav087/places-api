@@ -8,6 +8,8 @@ public interface PlacesService {
 
 	long savePlaceWithPostalCode(PlaceDto placeDto);
 
-	List<PlaceDto> savePlacesListWithPostalCodes(List<PlaceDto> placeDtos);
+	boolean savePlacesListWithPostalCodes(List<PlaceDto> placeDtos);
+
+	List<PlaceDto> getPlacesNameByPostalRange(long rangeFrom, long rangeTo);
 
 }

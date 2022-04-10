@@ -1,10 +1,9 @@
 package com.example.demo.api;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,14 +15,11 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.example.demo.api.dto.PlaceDto;
 import com.example.demo.api.service.PlacesService;
@@ -36,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @WebMvcTest(PlacesController.class)
 class PlacesControllerTest {
 	
-	private static final Logger logger = LoggerFactory.getLogger(PlacesControllerTest.class);
 	
 	@Autowired
 	private MockMvc mockMvc;
@@ -54,7 +49,7 @@ class PlacesControllerTest {
 	@Disabled
 	void testSavePlacesWithPostalCode() throws JsonProcessingException, Exception {
 		
-		PlaceDto placeDto = preparePlaceDetail("Chennai", 600001);
+		PlaceDto placeDto = preparePlaceDetail(0,"Chennai", 600001);
 		
 		when(placesService.savePlaceWithPostalCode(argumentCaptor.capture())).thenReturn(1L);
 		
@@ -72,14 +67,14 @@ class PlacesControllerTest {
 		
 		List<PlaceDto> placeDtos = new ArrayList<>();
 		
-		placeDtos.add(preparePlaceDetail("Chennai", 600001)); 
-		placeDtos.add(preparePlaceDetail("Madurai", 625001)); 
-		placeDtos.add(preparePlaceDetail("Kovai", 641001)); 
-		placeDtos.add(preparePlaceDetail("Trichy", 620001));
+		placeDtos.add(preparePlaceDetail(0,"Chennai", 600001)); 
+		placeDtos.add(preparePlaceDetail(0,"Madurai", 625001)); 
+		placeDtos.add(preparePlaceDetail(0,"Kovai", 641001)); 
+		placeDtos.add(preparePlaceDetail(0,"Trichy", 620001));
 		
-		when(placesService.savePlacesListWithPostalCodes(argumentCaptor.getAllValues())).thenReturn(placeDtos);
+		when(placesService.savePlacesListWithPostalCodes(argumentCaptor.getAllValues())).thenReturn(true);
 		
-		logger.info("Post JSON values : {}", mapper.writeValueAsString(placeDtos));
+		log.info("Post JSON values : {}", mapper.writeValueAsString(placeDtos));
 		
 		this.mockMvc
 		.perform(post("/api/places")
@@ -90,9 +85,34 @@ class PlacesControllerTest {
 		.andExpect(header().string("Location","http://localhost/api/places/"));
 		
 	}
+	
+	@Test
+	void testGetPlacesByPostCodeSortByName() throws Exception {
+		
+		long rangeFrom=600001;
+		long rangeTo=641100;
+		List<PlaceDto> placeDtos = new ArrayList<>();
+		placeDtos.add(preparePlaceDetail(1,"Chennai", 600001)); 
+		placeDtos.add(preparePlaceDetail(2,"Madurai", 625001)); 
+		placeDtos.add(preparePlaceDetail(3,"Kovai", 641001)); 
+		placeDtos.add(preparePlaceDetail(4,"Trichy", 620001));
+		when(placesService.getPlacesNameByPostalRange(rangeFrom, rangeTo)).thenReturn(placeDtos);
+		
+		this.mockMvc.perform(get("/api/places")
+				.queryParam("rangeFrom", String.valueOf(rangeFrom))
+				.queryParam("rangeTo",String.valueOf(rangeTo)))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$[0].placeName", is("Chennai")))
+		.andExpect(jsonPath("$[0].postalCode", is(600001)))
+		.andExpect(jsonPath("$[0].id", is(1)));
+	}
 
-	private PlaceDto preparePlaceDetail(String placeName, long postalCode) {
-		return PlaceDto.builder().placeName(placeName).postalCode(postalCode).build();
+	private PlaceDto preparePlaceDetail(long id, String placeName, long postalCode) {
+		return PlaceDto.builder()
+				.id(id)
+				.placeName(placeName)
+				.postalCode(postalCode)
+				.build();
 	}
 
 }
